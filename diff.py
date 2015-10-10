@@ -20,7 +20,7 @@ def load(filename):
     # load json data
     with open(filename, 'r') as json_file:
         file_data = json.load(json_file)
-    # get and print station list
+    # get and print(station list)
     # stations are assigned letters starting from A
     station_list = [train['station'] for train in file_data]
     # get timing lists
@@ -104,7 +104,7 @@ def calculate(horizontal_lists):
 
 
 def output(filename):
-    """print pretty output for train timings with average differences
+    """print(pretty output for train timings with average differences)
 
     Args:
         filename: string json file name to parse
@@ -114,58 +114,85 @@ def output(filename):
     """
     # load data
     station_list, vertical_lists = load(filename)
-    # print station list key containing station names
+    # print(station list key containing station names)
+    stations = {}
+    trains = {}
     x = ord('A')
     for index, item in enumerate(station_list):
-        print '%s: %s' % (chr(x + index), item)
-    print ''
+        print('%s: %s' % (chr(x + index), item))
+        stations[index] = item
+    print('')
     # convert data
     horizontal_lists = convert(vertical_lists)
-    # print station list key for timings
+    # print(station list key for timings)
     x = ord('A')
-    print ' ',
+    print(' '),
     for i in range(len(horizontal_lists[0])):
-        print '{:^5}'.format(chr(x)),
+        print('{:^5}'.format(chr(x))),
         x += 1
-    print ''
-    # print train timings
+    print('')
+    # print(train timings)
     for i, v in enumerate(horizontal_lists):
-        print "{0:2}".format(i + 1),
+        train = []
+        print("{0:2}".format(i + 1)),
         for x in v:
             if x is None:
-                print 'XX:XX',
+                s = 'XX:XX'
             else:
-                print x.strftime('%H:%M'),
-        print ''
-    print '\n'
-    # print station list key for timing diffs
+                s = str(x.strftime('%H:%M'))
+            train.append(s)
+            print(s),
+        trains[i] = train
+        print('')
+    print('\n')
+    # print(station list key for timing diffs)
     x = 1
-    print '   ',
+    print('   '),
     for i in range(len(horizontal_lists)):
-        print '{:^3}'.format(str(x)),
+        print('{:^3}'.format(str(x))),
         x += 1
-    print ''
+    print('')
     # calculate timing differences
     timings, avg_list = calculate(horizontal_lists)
-    # print timings with averages
+    for index_i, t_list in enumerate(timings):
+        for index_j, timing in enumerate(t_list):
+            t_list[index_j] = timing.seconds // 60
+    # print(timings with averages)
     x = ord('A')
     for index, t_list in enumerate(timings):
-        print "{0:2}".format(chr(x + index)),
+        print("{0:2}".format(chr(x + index))),
         for timing in t_list:
-            print '{0:3}'.format(timing.seconds // 60),
-        print '| avg: {0:2}'.format(avg_list[index])
-    print ''
-    # print station difference information
+            print('{0:3}'.format(timing)),
+        print('| avg: {0:2}'.format(avg_list[index]))
+    print('')
+    # print(station difference information)
+    total_time = 0
     for index in range(1, len(station_list)):
-        print '{0:<15} --> {1:>15} :: {2:2}mins.'.format(
+        print('{0:<15} --> {1:>15} :: {2:2}mins.'.format(
             station_list[index - 1],
             station_list[index],
-            avg_list[index])
+            avg_list[index]))
+        total_time += avg_list[index]
+    print('{0:<15} :: {1}'.format('Average time for train run', total_time))
+
+    return timings, avg_list, stations, trains
 
 
 if __name__ == '__main__':
-    print '---- UP LOCALS ----'
-    output('up.json')
-    print '\n\n\n'
-    print '---- DOWN LOCALS ----'
-    output('down.json')
+    print('---- UP LOCALS ----')
+    timings, avg_list, stations, trains = output('up.json')
+    with open('up_data.json', 'w') as f:
+        json.dump({'timings': timings, 'avg_list': avg_list}, f)
+    with open('up_stations.json', 'w') as f:
+        json.dump(stations, f)
+    with open('up_trains.json', 'w') as f:
+        json.dump(trains, f)
+    print('\n\n\n')
+    print('---- DOWN LOCALS ----')
+    timings, avg_list, stations, trains = output('down.json')
+    with open('down_data.json', 'w') as f:
+        json.dump({'timings': timings, 'avg_list': avg_list}, f)
+    with open('down_stations.json', 'w') as f:
+        json.dump(stations, f)
+    with open('down_trains.json', 'w') as f:
+        json.dump(trains, f)
