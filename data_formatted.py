@@ -121,10 +121,13 @@ def make_timing_objects(station_objects, train_objects):
         if origin_index < destination_index:
             # up train
             stop_time = lambda index: station_objects[index]['time_next']
+            what_station = lambda station: station
         else:
             # down train
-            stop_time = lambda index: station_objects[index]['time_prev']
+            stop_time = lambda index: station_objects[
+                len(station_objects) - 1 - index]['time_prev']
             origin_index, destination_index = destination_index, origin_index
+            what_station = lambda station: len(station_objects) - 1 - station
 
         timing_object = []
         train_time = departure
@@ -136,7 +139,7 @@ def make_timing_objects(station_objects, train_objects):
             else:
                 train_time += stop_time(station)
             timing_object.append({
-                'station': station,
+                'station': what_station(station),
                 'train': index,
                 'timing': train_time,
             })
@@ -200,7 +203,7 @@ def run():
     #         stations[origin], stations[destination]))
 
     # print('\n\nTIMINGS')
-    # # print(timing_objects)
+    # print(timing_objects)
     # for index, value in enumerate(timing_objects):
     #     departure = train_objects[index]['departure_time']
     #     origin = train_objects[index]['origin_station']
