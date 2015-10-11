@@ -180,19 +180,19 @@ def output(filename):
 
 if __name__ == '__main__':
     print('---- UP LOCALS ----')
-    timings, avg_list, stations, trains = output('up.json')
-    with open('up_data.json', 'w') as f:
+    timings, avg_list, stations, trains = output('data/up.json')
+    with open('data/up_data.json', 'w') as f:
         json.dump({'timings': timings, 'avg_list': avg_list}, f)
-    with open('up_stations.json', 'w') as f:
+    with open('data/up_stations.json', 'w') as f:
         json.dump(stations, f)
-    with open('up_trains.json', 'w') as f:
+    with open('data/up_trains.json', 'w') as f:
         json.dump(trains, f)
     print('\n\n\n')
     print('---- DOWN LOCALS ----')
-    timings, avg_list, stations, trains = output('down.json')
-    with open('down_data.json', 'w') as f:
+    timings, avg_list, stations, trains = output('data/down.json')
+    with open('data/down_data.json', 'w') as f:
         json.dump({'timings': timings, 'avg_list': avg_list}, f)
-    with open('down_stations.json', 'w') as f:
+    with open('data/down_stations.json', 'w') as f:
         json.dump(stations, f)
-    with open('down_trains.json', 'w') as f:
+    with open('data/down_trains.json', 'w') as f:
         json.dump(trains, f)

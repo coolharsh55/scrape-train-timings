@@ -21,7 +21,7 @@ for every train (along the same direction and route).
 and `python` for a script to parse the `json` and print pretty output containing the timing information
 
 ## how to use the information?
-There are two files called `up.json` and `down.json` containing scraped, cleaned, and corrected data 
+All data is available as `json` data in the `data` folder. There are two files called `up.json` and `down.json` containing scraped, cleaned, and corrected data 
 for up/down local train timings respectively. The format is:
 
 ```
@@ -34,9 +34,24 @@ for up/down local train timings respectively. The format is:
 ```
 
 Along with the scraped data, there is additional data in the following `json` files:
+### generated with `data.py`
  - `up_stations.json` and `down_stations.json`: contain the stations listed
  - `up_trains.json` and `down_trains.json`: contains a list of the train runs
  - `up_data.json` and `down_data.json`: contain average train run timings between stops
+ - `data.txt` contains all above information as a text file
+
+### generated with `data_formatted.py`
+ - `data_formatted.json` containing station, train, and timing data formatted for easier use
+     + **stations**: contains a list of station names from _Pune_ to _Lonavala_
+     + **trains**: contains a list of `dict` containing train information:
+         * **departure_time**: time of departure for the train in minutes since midnight
+         * **origin_station**: index of first station where the train starts from `stations`
+         * **destination_station**: index of last station where the train stops from `stations`
+     + **timings**: contains a list of lists, each containing train timings as `dict`:
+         * **station**: index of station from `stations`
+         * **train**: index of train from `trains`
+         * **timing**: timing of the train stop in minutes from midnight
+ - `data_formatted.txt` contains all above information as a text file
 
 ### using with `scrapy`
 
