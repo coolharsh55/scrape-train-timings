@@ -1,225 +1,153 @@
-
-from itertools import chain
-from json import load
-from json import dump
-import time
-
-
-def load_from_file(filename):
-    """load json data from filename.json"""
-    with open(filename + '.json', 'r') as f:
-        data = load(f)
-
-    return data
-
-
-def make_station_list(data):
-    """make station name list from given json data"""
-    assert type(data) == dict
-
-    station_list = []
-    for i in range(0, len(data.keys())):
-        station_list.append(data[str(i)])
-
-    return station_list
+STATIONS
+ 0: PUNE STATION    ::  6 ::  0
+ 1: SHIVAJINAGAR    ::  5 :: 12
+ 2: KHADKI          ::  5 ::  5
+ 3: DAPODI          ::  4 ::  4
+ 4: KASARWADI       ::  3 ::  4
+ 5: PIMPRI          ::  5 ::  4
+ 6: CHINCHWAD       ::  5 ::  4
+ 7: AKURDI          ::  5 ::  5
+ 8: DEHU ROAD       ::  5 ::  4
+ 9: BEGDEWADI       ::  3 ::  4
+10: GORAWADI        ::  6 ::  5
+11: TALEGAON        ::  5 ::  5
+12: WADGAON         ::  5 ::  6
+13: KANHE           ::  5 ::  6
+14: KAMSHET         ::  9 ::  4
+15: MALWALI         :: 14 ::  8
+16: LONAWALA        ::  0 ::  9
 
 
-def normalize_avg(averages):
-    """normalize the averages through splicing"""
-    averages = averages[1:]
-    averages.append(0)
-    return averages
+TRAINS
+ 0: 00:10 :: PUNE STATION    to LONAWALA       
+ 1: 04:45 :: PUNE STATION    to LONAWALA       
+ 2: 05:45 :: PUNE STATION    to LONAWALA       
+ 3: 06:30 :: PUNE STATION    to LONAWALA       
+ 4: 06:50 :: PUNE STATION    to TALEGAON       
+ 5: 08:05 :: PUNE STATION    to LONAWALA       
+ 6: 08:57 :: PUNE STATION    to TALEGAON       
+ 7: 09:55 :: PUNE STATION    to LONAWALA       
+ 8: 10:50 :: SHIVAJINAGAR    to LONAWALA       
+ 9: 11:55 :: PUNE STATION    to LONAWALA       
+10: 13:00 :: PUNE STATION    to LONAWALA       
+11: 15:00 :: PUNE STATION    to LONAWALA       
+12: 15:40 :: PUNE STATION    to TALEGAON       
+13: 16:25 :: PUNE STATION    to LONAWALA       
+14: 17:10 :: PUNE STATION    to TALEGAON       
+15: 18:02 :: PUNE STATION    to LONAWALA       
+16: 19:05 :: PUNE STATION    to LONAWALA       
+17: 19:35 :: SHIVAJINAGAR    to LONAWALA       
+18: 20:00 :: PUNE STATION    to LONAWALA       
+19: 21:05 :: PUNE STATION    to LONAWALA       
+20: 22:10 :: PUNE STATION    to LONAWALA       
+21: 23:00 :: PUNE STATION    to TALEGAON       
+22: 00:05 :: TALEGAON        to PUNE STATION   
+23: 05:20 :: LONAWALA        to PUNE STATION   
+24: 06:20 :: LONAWALA        to PUNE STATION   
+25: 07:20 :: LONAWALA        to PUNE STATION   
+26: 07:50 :: TALEGAON        to PUNE STATION   
+27: 08:20 :: LONAWALA        to PUNE STATION   
+28: 09:57 :: TALEGAON        to SHIVAJINAGAR   
+29: 09:35 :: LONAWALA        to PUNE STATION   
+30: 11:20 :: LONAWALA        to PUNE STATION   
+31: 14:00 :: LONAWALA        to PUNE STATION   
+32: 14:55 :: LONAWALA        to PUNE STATION   
+33: 15:45 :: LONAWALA        to PUNE STATION   
+34: 16:40 :: TALEGAON        to PUNE STATION   
+35: 17:25 :: LONAWALA        to PUNE STATION   
+36: 18:20 :: LONAWALA        to PUNE STATION   
+37: 19:35 :: LONAWALA        to PUNE STATION   
+38: 20:40 :: LONAWALA        to PUNE STATION   
+39: 21:15 :: LONAWALA        to PUNE STATION   
+40: 22:05 :: LONAWALA        to PUNE STATION   
+41: 22:35 :: LONAWALA        to PUNE STATION   
+42: 23:45 :: LONAWALA        to PUNE STATION   
 
 
-def make_station_averages(stations, up_averages, down_averages):
-    """create station objects containing time averages for
-    next and previous stations"""
-    assert type(stations) == list
-    assert type(up_averages) == list
-    assert type(down_averages) == list
-
-    station_objects = []
-    for index, name in enumerate(stations):
-        time_to_next = up_averages[index]
-        time_to_prev = down_averages[len(stations) - index - 1]
-        station_objects.append({
-            'name': name,
-            'time_next': time_to_next,
-            'time_prev': time_to_prev,
-        })
-
-    return station_objects
-
-
-def make_trains(data):
-    """create train lists from given json data"""
-    assert type(data) == dict
-
-    train_lists = []
-    for i in range(0, len(data.keys())):
-        train_lists.append(data[str(i)])
-
-    for train_list in train_lists:
-        for index, value in enumerate(train_list):
-            if value == 'XX:XX':
-                train_list[index] = None
-            else:
-                stop_time = time.strptime(value, '%H:%M')
-                # time_struct format - 3: hour 4: minutes
-                stop_time = stop_time[3] * 60 + stop_time[4]
-                train_list[index] = stop_time
-
-    return train_lists
-
-
-def make_train_objects(train_lists):
-    """make train objects with station and timing info"""
-    train_objects = []
-    for train_list in train_lists:
-        for index, timing in enumerate(train_list):
-            if timing is not None:
-                departure = timing
-                origin_index = index
-                break
-        for index, timing in enumerate(reversed(train_list)):
-            if timing is not None:
-                destination_index = len(train_list) - index - 1
-                break
-        train_objects.append({
-            'departure_time': departure,
-            'origin_station': origin_index,
-            'destination_station': destination_index,
-        })
-
-    return train_objects
-
-
-def normalize_down_trains(down_train_objects, station_nos):
-    """normalize down train objects into uniform format as up trains"""
-    train_objects = []
-    for train_object in down_train_objects:
-        departure = train_object['departure_time']
-        origin_index = train_object['origin_station']
-        destination_index = train_object['destination_station']
-        train_objects.append({
-            'departure_time': departure,
-            'origin_station': station_nos - 1 - origin_index,
-            'destination_station': station_nos - 1 - destination_index,
-        })
-
-    return train_objects
-
-
-def make_timing_objects(station_objects, train_objects):
-    """make timings for every train"""
-    timing_objects = []
-    for index, train in enumerate(train_objects):
-        departure = train['departure_time']
-        origin_index = train['origin_station']
-        destination_index = train['destination_station']
-
-        if origin_index < destination_index:
-            # up train
-            stop_time = lambda index: station_objects[index]['time_next']
-            what_station = lambda station: station
-        else:
-            # down train
-            stop_time = lambda index: station_objects[
-                len(station_objects) - 1 - index]['time_prev']
-            origin_index, destination_index = destination_index, origin_index
-            what_station = lambda station: len(station_objects) - 1 - station
-
-        timing_object = []
-        train_time = departure
-        for station in range(0, len(station_objects)):
-            if station < origin_index or station > destination_index:
-                train_time = None
-            elif station == origin_index:
-                train_time = departure
-            else:
-                train_time += stop_time(station)
-            timing_object.append({
-                'station': what_station(station),
-                'train': index,
-                'timing': train_time,
-            })
-
-        timing_objects.append(timing_object)
-
-    return timing_objects
-
-
-def run():
-    """run script with default bindings"""
-    data = load_from_file('data/up_stations')
-    stations = make_station_list(data)
-
-    data = load_from_file('data/up_data')
-    up_averages = normalize_avg(data['avg_list'])
-    data = load_from_file('data/down_data')
-    down_averages = normalize_avg(data['avg_list'])
-    station_objects = make_station_averages(
-        stations, up_averages, down_averages)
-
-    data = load_from_file('data/up_trains')
-    up_trains = make_trains(data)
-    up_train_objects = make_train_objects(up_trains)
-
-    data = load_from_file('data/down_trains')
-    down_trains = make_trains(data)
-    down_train_objects = make_train_objects(down_trains)
-    down_train_objects = normalize_down_trains(
-        down_train_objects, len(stations))
-
-    train_objects = list(chain(up_train_objects, down_train_objects))
-
-    timing_objects = make_timing_objects(station_objects, train_objects)
-
-    with open('data/data_formatted.json', 'w') as f:
-        dump({
-            'stations': station_objects,
-            'trains': train_objects,
-            'timings': timing_objects,
-        }, f)
-
-    mktime = lambda x: str('{0:02}'.format(x // 60)) + \
-        ':' + str('{0:02}'.format(x % 60))
-
-    print('STATIONS')
-    for index, value in enumerate(station_objects):
-        name = value['name']
-        t_next = value['time_next']
-        t_prev = value['time_prev']
-        print('{0:2}: {1:15} :: {2:2} :: {3:2}'.format(
-            index, name, t_next, t_prev))
-
-    print('\n\nTRAINS')
-    for index, value in enumerate(train_objects):
-        departure = value['departure_time']
-        origin = value['origin_station']
-        destination = value['destination_station']
-        print('{0:2}: {1:4} :: {2:15} to {3:15}'.format(
-            index, mktime(departure),
-            stations[origin], stations[destination]))
-
-    print('\n\nTIMINGS')
-    # print(timing_objects)
-    for index, value in enumerate(timing_objects):
-        departure = train_objects[index]['departure_time']
-        origin = train_objects[index]['origin_station']
-        destination = train_objects[index]['destination_station']
-        print('{0:2}: {1:4} :: {2:15} to {3:15}'.format(
-            index, mktime(departure),
-            stations[origin], stations[destination]))
-
-        for timing in value:
-            # print(timing)
-            if timing['timing']:
-                print('{0:4} '.format(mktime(timing['timing']))),
-            else:
-                print('0'),
-        print('')
-
-
-if __name__ == '__main__':
-    run()
+TIMINGS
+ 0: 00:10 :: PUNE STATION    to LONAWALA       
+00:10  00:15  00:20  00:24  00:27  00:32  00:37  00:42  00:47  00:50  00:56  01:01  01:06  01:11  01:20  01:34  01:34  
+ 1: 04:45 :: PUNE STATION    to LONAWALA       
+04:45  04:50  04:55  04:59  05:02  05:07  05:12  05:17  05:22  05:25  05:31  05:36  05:41  05:46  05:55  06:09  06:09  
+ 2: 05:45 :: PUNE STATION    to LONAWALA       
+05:45  05:50  05:55  05:59  06:02  06:07  06:12  06:17  06:22  06:25  06:31  06:36  06:41  06:46  06:55  07:09  07:09  
+ 3: 06:30 :: PUNE STATION    to LONAWALA       
+06:30  06:35  06:40  06:44  06:47  06:52  06:57  07:02  07:07  07:10  07:16  07:21  07:26  07:31  07:40  07:54  07:54  
+ 4: 06:50 :: PUNE STATION    to TALEGAON       
+06:50  06:55  07:00  07:04  07:07  07:12  07:17  07:22  07:27  07:30  07:36  07:41  0 0 0 0 0 
+ 5: 08:05 :: PUNE STATION    to LONAWALA       
+08:05  08:10  08:15  08:19  08:22  08:27  08:32  08:37  08:42  08:45  08:51  08:56  09:01  09:06  09:15  09:29  09:29  
+ 6: 08:57 :: PUNE STATION    to TALEGAON       
+08:57  09:02  09:07  09:11  09:14  09:19  09:24  09:29  09:34  09:37  09:43  09:48  0 0 0 0 0 
+ 7: 09:55 :: PUNE STATION    to LONAWALA       
+09:55  10:00  10:05  10:09  10:12  10:17  10:22  10:27  10:32  10:35  10:41  10:46  10:51  10:56  11:05  11:19  11:19  
+ 8: 10:50 :: SHIVAJINAGAR    to LONAWALA       
+0 10:50  10:55  10:59  11:02  11:07  11:12  11:17  11:22  11:25  11:31  11:36  11:41  11:46  11:55  12:09  12:09  
+ 9: 11:55 :: PUNE STATION    to LONAWALA       
+11:55  12:00  12:05  12:09  12:12  12:17  12:22  12:27  12:32  12:35  12:41  12:46  12:51  12:56  13:05  13:19  13:19  
+10: 13:00 :: PUNE STATION    to LONAWALA       
+13:00  13:05  13:10  13:14  13:17  13:22  13:27  13:32  13:37  13:40  13:46  13:51  13:56  14:01  14:10  14:24  14:24  
+11: 15:00 :: PUNE STATION    to LONAWALA       
+15:00  15:05  15:10  15:14  15:17  15:22  15:27  15:32  15:37  15:40  15:46  15:51  15:56  16:01  16:10  16:24  16:24  
+12: 15:40 :: PUNE STATION    to TALEGAON       
+15:40  15:45  15:50  15:54  15:57  16:02  16:07  16:12  16:17  16:20  16:26  16:31  0 0 0 0 0 
+13: 16:25 :: PUNE STATION    to LONAWALA       
+16:25  16:30  16:35  16:39  16:42  16:47  16:52  16:57  17:02  17:05  17:11  17:16  17:21  17:26  17:35  17:49  17:49  
+14: 17:10 :: PUNE STATION    to TALEGAON       
+17:10  17:15  17:20  17:24  17:27  17:32  17:37  17:42  17:47  17:50  17:56  18:01  0 0 0 0 0 
+15: 18:02 :: PUNE STATION    to LONAWALA       
+18:02  18:07  18:12  18:16  18:19  18:24  18:29  18:34  18:39  18:42  18:48  18:53  18:58  19:03  19:12  19:26  19:26  
+16: 19:05 :: PUNE STATION    to LONAWALA       
+19:05  19:10  19:15  19:19  19:22  19:27  19:32  19:37  19:42  19:45  19:51  19:56  20:01  20:06  20:15  20:29  20:29  
+17: 19:35 :: SHIVAJINAGAR    to LONAWALA       
+0 19:35  19:40  19:44  19:47  19:52  19:57  20:02  20:07  20:10  20:16  20:21  20:26  20:31  20:40  20:54  20:54  
+18: 20:00 :: PUNE STATION    to LONAWALA       
+20:00  20:05  20:10  20:14  20:17  20:22  20:27  20:32  20:37  20:40  20:46  20:51  20:56  21:01  21:10  21:24  21:24  
+19: 21:05 :: PUNE STATION    to LONAWALA       
+21:05  21:10  21:15  21:19  21:22  21:27  21:32  21:37  21:42  21:45  21:51  21:56  22:01  22:06  22:15  22:29  22:29  
+20: 22:10 :: PUNE STATION    to LONAWALA       
+22:10  22:15  22:20  22:24  22:27  22:32  22:37  22:42  22:47  22:50  22:56  23:01  23:06  23:11  23:20  23:34  23:34  
+21: 23:00 :: PUNE STATION    to TALEGAON       
+23:00  23:05  23:10  23:14  23:17  23:22  23:27  23:32  23:37  23:40  23:46  23:51  0 0 0 0 0 
+22: 00:05 :: TALEGAON        to PUNE STATION   
+00:05  00:13  00:17  00:23  00:29  00:34  00:39  00:43  00:47  00:52  00:56  01:00  0 0 0 0 0 
+23: 05:20 :: LONAWALA        to PUNE STATION   
+05:20  05:28  05:32  05:38  05:44  05:49  05:54  05:58  06:02  06:07  06:11  06:15  06:19  06:23  06:28  06:40  06:40  
+24: 06:20 :: LONAWALA        to PUNE STATION   
+06:20  06:28  06:32  06:38  06:44  06:49  06:54  06:58  07:02  07:07  07:11  07:15  07:19  07:23  07:28  07:40  07:40  
+25: 07:20 :: LONAWALA        to PUNE STATION   
+07:20  07:28  07:32  07:38  07:44  07:49  07:54  07:58  08:02  08:07  08:11  08:15  08:19  08:23  08:28  08:40  08:40  
+26: 07:50 :: TALEGAON        to PUNE STATION   
+07:50  07:58  08:02  08:08  08:14  08:19  08:24  08:28  08:32  08:37  08:41  08:45  0 0 0 0 0 
+27: 08:20 :: LONAWALA        to PUNE STATION   
+08:20  08:28  08:32  08:38  08:44  08:49  08:54  08:58  09:02  09:07  09:11  09:15  09:19  09:23  09:28  09:40  09:40  
+28: 09:57 :: TALEGAON        to SHIVAJINAGAR   
+0 09:57  10:01  10:07  10:13  10:18  10:23  10:27  10:31  10:36  10:40  10:44  0 0 0 0 0 
+29: 09:35 :: LONAWALA        to PUNE STATION   
+09:35  09:43  09:47  09:53  09:59  10:04  10:09  10:13  10:17  10:22  10:26  10:30  10:34  10:38  10:43  10:55  10:55  
+30: 11:20 :: LONAWALA        to PUNE STATION   
+11:20  11:28  11:32  11:38  11:44  11:49  11:54  11:58  12:02  12:07  12:11  12:15  12:19  12:23  12:28  12:40  12:40  
+31: 14:00 :: LONAWALA        to PUNE STATION   
+14:00  14:08  14:12  14:18  14:24  14:29  14:34  14:38  14:42  14:47  14:51  14:55  14:59  15:03  15:08  15:20  15:20  
+32: 14:55 :: LONAWALA        to PUNE STATION   
+14:55  15:03  15:07  15:13  15:19  15:24  15:29  15:33  15:37  15:42  15:46  15:50  15:54  15:58  16:03  16:15  16:15  
+33: 15:45 :: LONAWALA        to PUNE STATION   
+15:45  15:53  15:57  16:03  16:09  16:14  16:19  16:23  16:27  16:32  16:36  16:40  16:44  16:48  16:53  17:05  17:05  
+34: 16:40 :: TALEGAON        to PUNE STATION   
+16:40  16:48  16:52  16:58  17:04  17:09  17:14  17:18  17:22  17:27  17:31  17:35  0 0 0 0 0 
+35: 17:25 :: LONAWALA        to PUNE STATION   
+17:25  17:33  17:37  17:43  17:49  17:54  17:59  18:03  18:07  18:12  18:16  18:20  18:24  18:28  18:33  18:45  18:45  
+36: 18:20 :: LONAWALA        to PUNE STATION   
+18:20  18:28  18:32  18:38  18:44  18:49  18:54  18:58  19:02  19:07  19:11  19:15  19:19  19:23  19:28  19:40  19:40  
+37: 19:35 :: LONAWALA        to PUNE STATION   
+19:35  19:43  19:47  19:53  19:59  20:04  20:09  20:13  20:17  20:22  20:26  20:30  20:34  20:38  20:43  20:55  20:55  
+38: 20:40 :: LONAWALA        to PUNE STATION   
+20:40  20:48  20:52  20:58  21:04  21:09  21:14  21:18  21:22  21:27  21:31  21:35  21:39  21:43  21:48  22:00  22:00  
+39: 21:15 :: LONAWALA        to PUNE STATION   
+21:15  21:23  21:27  21:33  21:39  21:44  21:49  21:53  21:57  22:02  22:06  22:10  22:14  22:18  22:23  22:35  22:35  
+40: 22:05 :: LONAWALA        to PUNE STATION   
+22:05  22:13  22:17  22:23  22:29  22:34  22:39  22:43  22:47  22:52  22:56  23:00  23:04  23:08  23:13  23:25  23:25  
+41: 22:35 :: LONAWALA        to PUNE STATION   
+22:35  22:43  22:47  22:53  22:59  23:04  23:09  23:13  23:17  23:22  23:26  23:30  23:34  23:38  23:43  23:55  23:55  
+42: 23:45 :: LONAWALA        to PUNE STATION   
+23:45  23:53  23:57  24:03  24:09  24:14  24:19  24:23  24:27  24:32  24:36  24:40  24:44  24:48  24:53  25:05  25:05  
